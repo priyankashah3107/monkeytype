@@ -13,22 +13,12 @@ interface SentOTPEmailProps {
   otp: string;
 }
 
-// export const sentOTPEmail = async ({ email, otp }: SentOTPEmailProps) => {
-//   console.log(`Sending OTP ${otp} to email ${email}`);
-//   await client.sendEmail({
-//     From: "11020210079@stu.srmuniversity.ac.in",
-//     To: email,
-//     Subject: "Your OTP Code",
-//     TextBody: `Your OTP code is ${otp}. It expires in 5 minutes.`,
-//   });
-// };
-
 export const sentOTPEmail = async ({ email, otp }: SentOTPEmailProps) => {
   console.log(`Sending OTP ${otp} to email ${email}`);
 
   try {
     const response = await client.sendEmail({
-      From: "11020210079@stu.srmuniversity.ac.in", 
+      From: "11020210079@stu.srmuniversity.ac.in",
       To: email,
       Subject: "Your OTP Code",
       TextBody: `Your OTP code is ${otp}. It expires in 5 minutes.`,

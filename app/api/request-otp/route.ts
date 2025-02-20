@@ -2,9 +2,6 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sentOTPEmail } from "@/lib/sendEmail";
-// email is required
-// generate otp
-// store thar otp in the db
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
@@ -14,19 +11,36 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // generate of otp
+    
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      
+      if (user.otpExpires && new Date() < user.otpExpires) {
+        return NextResponse.json(
+          {
+            error:
+              "OTP is still valid. Please wait before requesting a new one.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOTP = await bcrypt.hash(otp, 10);
-    const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
+    const expiryTime = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
 
-    // store otp in the db
     await prisma.user.upsert({
       where: { email },
       update: { otp: hashedOTP, otpExpires: expiryTime },
       create: { email, otp: hashedOTP, otpExpires: expiryTime },
     });
+
+   
     await sentOTPEmail({ email, otp });
-    return NextResponse.json({ message: "OTP sent to you email" });
+
+    return NextResponse.json({ message: "New OTP sent to your email" });
   } catch (error) {
     return NextResponse.json({ error: "Error sending OTP" }, { status: 500 });
   }
